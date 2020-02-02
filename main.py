@@ -6,6 +6,7 @@
 import sys
 import os
 import configparser  # 读写ini
+import logging
 
 from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import QFileDialog
@@ -13,6 +14,15 @@ from PyQt5.QtWidgets import QFileDialog
 from ui.ui_main_drop import Ui_Dialog
 from ui.drop_area import DropArea
 from clib.call_c_lib import get_file_info
+
+logging.basicConfig(
+    level=logging.DEBUG,  # 控制台打印的日志级别
+    filename='filecopy.log',
+    filemode='a',  # 模式，有w和a，w就是写模式，每次都会重新写日志，覆盖之前的日志
+    # a是追加模式，默认如果不写的话，就是追加模式
+    format='%(asctime)s  [%(message)s]'
+    # 日志格式
+)
 
 
 class MainWindow(QtWidgets.QWidget):
@@ -25,7 +35,7 @@ class MainWindow(QtWidgets.QWidget):
         # 添加文件拖拽区
         self.drop_area = DropArea(self)
         self.ui.verticalLayout_drop.addWidget(self.drop_area)  # 添加drop区到layout
-        self.drop_area.dropped.connect(self.handle_drop)       # 注册droped信号的响应函数
+        self.drop_area.dropped.connect(self.handle_drop)  # 注册droped信号的响应函数
 
         # 读取配置文件
         self.cf = configparser.ConfigParser()
@@ -34,7 +44,7 @@ class MainWindow(QtWidgets.QWidget):
         self.ui.le_save_path.setText(val)
 
         # 绑定按键
-        self.ui.pb_path_browser.clicked.connect(self.open_dir)    # 绑定浏览按钮
+        self.ui.pb_path_browser.clicked.connect(self.open_dir)  # 绑定浏览按钮
         self.ui.pb_exec.clicked.connect(self.exec_copy)
 
     def handle_drop(self, list_of_files):
@@ -54,8 +64,8 @@ class MainWindow(QtWidgets.QWidget):
             self.ui.le_file_len.setText("{}".format(res[1]))
 
     def open_dir(self):
-        dir_path = QFileDialog.getExistingDirectory(
-            self, "选择文件保存路径", "./")  # 选择目录
+        dir_path = QFileDialog.getExistingDirectory(self, "选择文件保存路径",
+                                                    "./")  # 选择目录
         self.ui.le_save_path.setText(dir_path)
         # 保存的路径写入到ini文件, 下次软件启动时自动恢复
         self.cf.set("baseconfig", "save_path", dir_path)
@@ -65,7 +75,8 @@ class MainWindow(QtWidgets.QWidget):
         # check
         src = self.ui.le_filepath.text()
         dst_dir = self.ui.le_save_path.text()
-        dst = os.path.join(dst_dir, 'file_{}'.format(self.ui.le_filename.text()))
+        dst = os.path.join(dst_dir,
+                           'file_{}'.format(self.ui.le_filename.text()))
         if not os.path.exists(src):
             self.ui.le_info.setText("源文件不存在")
             return
@@ -76,6 +87,8 @@ class MainWindow(QtWidgets.QWidget):
             self.ui.le_info.setText("目标不可写")
             return
         os.system('cp {} {}'.format(src, dst))
+        logging.info("src: {}, dst: {}, crc: {}, len: {}".format(
+            src, dst, self.ui.le_crc.text(), self.ui.le_file_len.text()))
         self.ui.le_info.setText("复制成功")
 
 
