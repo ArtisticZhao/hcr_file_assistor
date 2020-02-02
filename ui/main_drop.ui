@@ -185,20 +185,29 @@
     </layout>
    </item>
    <item>
-    <layout class="QVBoxLayout" name="verticalLayout_2">
+    <layout class="QVBoxLayout" name="verticalLayout_drop">
      <item>
       <widget class="QLabel" name="label">
        <property name="text">
-        <string>文件路径(下方可拖入文件)</string>
+        <string>文件路径:</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QTextEdit" name="te_drop_area">
-       <property name="readOnly">
-        <bool>false</bool>
+      <widget class="QLineEdit" name="le_filepath"/>
+     </item>
+     <item>
+      <spacer name="verticalSpacer_5">
+       <property name="orientation">
+        <enum>Qt::Vertical</enum>
        </property>
-      </widget>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>20</width>
+         <height>40</height>
+        </size>
+       </property>
+      </spacer>
      </item>
     </layout>
    </item>
