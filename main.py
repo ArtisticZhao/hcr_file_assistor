@@ -4,6 +4,8 @@
 # run with python 3.6 with pyqt5! #
 ###################################
 import sys
+import os
+import configparser  # 读写ini
 
 from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import QFileDialog
@@ -24,7 +26,16 @@ class MainWindow(QtWidgets.QWidget):
         self.drop_area = DropArea(self)
         self.ui.verticalLayout_drop.addWidget(self.drop_area)  # 添加drop区到layout
         self.drop_area.dropped.connect(self.handle_drop)       # 注册droped信号的响应函数
+
+        # 读取配置文件
+        self.cf = configparser.ConfigParser()
+        self.cf.read("config.ini")
+        val = self.cf.get("baseconfig", "save_path")
+        self.ui.le_save_path.setText(val)
+
+        # 绑定按键
         self.ui.pb_path_browser.clicked.connect(self.open_dir)    # 绑定浏览按钮
+        self.ui.pb_exec.clicked.connect(self.exec_copy)
 
     def handle_drop(self, list_of_files):
         '''
@@ -46,6 +57,26 @@ class MainWindow(QtWidgets.QWidget):
         dir_path = QFileDialog.getExistingDirectory(
             self, "选择文件保存路径", "./")  # 选择目录
         self.ui.le_save_path.setText(dir_path)
+        # 保存的路径写入到ini文件, 下次软件启动时自动恢复
+        self.cf.set("baseconfig", "save_path", dir_path)
+        self.cf.write(open("config.ini", "w"))
+
+    def exec_copy(self):
+        # check
+        src = self.ui.le_filepath.text()
+        dst_dir = self.ui.le_save_path.text()
+        dst = os.path.join(dst_dir, 'file_{}'.format(self.ui.le_filename.text()))
+        if not os.path.exists(src):
+            self.ui.le_info.setText("源文件不存在")
+            return
+        if not os.path.exists(dst_dir):
+            self.ui.le_info.setText("目标文件夹不存在")
+            return
+        if not os.access(dst_dir, os.W_OK):
+            self.ui.le_info.setText("目标不可写")
+            return
+        os.system('cp {} {}'.format(src, dst))
+        self.ui.le_info.setText("复制成功")
 
 
 if __name__ == "__main__":
