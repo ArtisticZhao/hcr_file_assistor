@@ -1,6 +1,7 @@
 # coding: utf-8
 from PyQt5.QtWidgets import QLabel
 from PyQt5.QtCore import Qt, pyqtSignal
+from urllib.parse import unquote  # 解决中文路径
 
 
 class DropArea(QLabel):
@@ -19,5 +20,6 @@ class DropArea(QLabel):
 
     def dropEvent(self, QDropEvent):
         txt_path = QDropEvent.mimeData().text().replace('file:///', '/')  # 替换掉文件开头
-        list_of_files = list(filter(None, txt_path.split('\r\n')))  # 以\r\n进行字符串分割,得到文件列表
+        # print(unquote(txt_path))  # 解决中文路径问题
+        list_of_files = list(filter(None, unquote(txt_path).split('\r\n')))  # 以\r\n进行字符串分割,得到文件列表
         self.dropped.emit(list_of_files)  # 发送列表
